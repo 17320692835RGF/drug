@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import VisitTracker from "./components/VisitTracker";
 
 export const metadata: Metadata = {
   title: "RDCdb：The Database of Radionuclide Drug Conjugates",
@@ -58,6 +59,7 @@ export default function RootLayout({
           </div>
         </header>
         {children}
+        <VisitTracker />
       </body>
     </html>
   );

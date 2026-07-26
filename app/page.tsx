@@ -8,6 +8,12 @@ type StatusOption = { value: string; label: string };
 type DrugItem = { drug_id: string; drug_name: string; status: string | null };
 type ChemicalItem = { entity_id: string; name: string };
 
+function formatVisitorDate(iso: string | null): string {
+  if (!iso) return "-";
+  const d = new Date(iso);
+  return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
 type ChemicalEntityCategory = "cold_compound" | "ligand" | "linker" | "chelator" | "radionuclide";
 type SearchTabKey = "rdc" | ChemicalEntityCategory;
 
@@ -115,6 +121,10 @@ function HomePageContent() {
   const [chemicalItems, setChemicalItems] = useState<ChemicalItem[]>([]);
   const [chemicalLoading, setChemicalLoading] = useState(false);
 
+  // Visitor stats
+  const [visitorTotal, setVisitorTotal] = useState<number>(0);
+  const [visitorSince, setVisitorSince] = useState<string | null>(null);
+
   const activeTabParam = searchParams.get("tab");
   const activeTab: SearchTabKey =
     activeTabParam === "rdc" ||
@@ -144,6 +154,26 @@ function HomePageContent() {
         // ignore in UI
       } finally {
         if (!cancelled) setStatusLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Load visitor stats on mount
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/visit-public", { cache: "no-store" });
+        const data = await res.json();
+        if (!cancelled) {
+          setVisitorTotal(data.total ?? 0);
+          setVisitorSince(data.firstVisit ?? null);
+        }
+      } catch (e) {
+        // ignore in UI
       }
     })();
     return () => {
@@ -514,6 +544,10 @@ function HomePageContent() {
           >
             Visitor Map
           </h2>
+          <p style={{ margin: 0, fontSize: 14, color: "#475569" }}>
+            <strong>{visitorTotal.toLocaleString()}</strong> visitors since{" "}
+            {visitorSince ? formatVisitorDate(visitorSince) : "-"}
+          </p>
         </section>
 
         <section>
