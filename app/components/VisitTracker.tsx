@@ -1,22 +1,26 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function VisitTracker() {
+  const pathname = usePathname();
+
   useEffect(() => {
+    if (typeof window === "undefined" || !pathname) return;
+
     const record = () => {
-      if (typeof window === "undefined") return;
       fetch("/api/visit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: window.location.pathname + window.location.search }),
+        body: JSON.stringify({ path: pathname + window.location.search }),
       }).catch(() => {
         // ignore errors
       });
     };
 
     record();
-  }, []);
+  }, [pathname]);
 
   return null;
 }

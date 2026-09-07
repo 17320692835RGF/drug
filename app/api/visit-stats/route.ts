@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { RowDataPacket } from "mysql2";
 import { getPool } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const pool = getPool();
@@ -44,7 +46,7 @@ export async function GET() {
        LIMIT 500`
     );
 
-    return NextResponse.json({
+    const payload = {
       total,
       uniqueIps,
       firstVisit: firstVisit ? new Date(firstVisit).toISOString() : null,
@@ -73,12 +75,19 @@ export async function GET() {
         city: (r.city as string) ?? "-",
         count: r.count as number,
       })),
-    });
+    };
+    const response = NextResponse.json(payload);
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+    return response;
   } catch (error) {
     console.error("Failed to fetch visit stats:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { total: 0, uniqueIps: 0, firstVisit: null, countries: [], recent: [], points: [] },
       { status: 500 }
     );
+    response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    return response;
   }
 }
