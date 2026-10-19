@@ -1,28 +1,28 @@
-# RDC 项目交接文档
+# RDC Project Handover Document
 
-本文档面向新接手开发人员，说明项目职责、技术栈、本地启动、数据库、数据更新、部署和常见维护流程。
+This document is intended for developers taking over the project. It covers project responsibilities, the tech stack, local setup, the database, data updates, deployment, and common maintenance procedures.
 
-## 项目概览
+## Project Overview
 
-这是一个 RDC 数据查询项目，前端页面和后端 API 都由同一个 Next.js 应用提供。
+This is an RDC data query project. Both the frontend pages and the backend API are provided by a single Next.js application.
 
-线上访问地址：
+Production URL:
 
 ```text
 https://rdcdb.com/
 ```
 
-核心能力：
+Core capabilities:
 
 ```text
-RDC 药物列表、搜索和详情
-化学实体详情
-药物、靶点、适应症、化学实体、文献和实验数据查询
-CSV 数据校验和 MySQL 数据更新
-GitHub Actions 手动部署代码和更新数据库数据
+RDC drug list, search, and detail pages
+Chemical entity details
+Queries for drugs, targets, indications, chemical entities, references, and experimental data
+CSV data validation and MySQL data updates
+GitHub Actions for manual code deployment and database data updates
 ```
 
-## 技术栈
+## Tech Stack
 
 ```text
 Next.js 14
@@ -31,37 +31,37 @@ TypeScript
 MySQL
 mysql2
 Node.js 20
-Python 3，用于 CSV 校验脚本
-PM2，用于线上 Node 服务守护
-Nginx，用于线上反向代理
+Python 3, used by the CSV validation script
+PM2, daemon for the production Node service
+Nginx, production reverse proxy
 ```
 
-## 重要目录
+## Important Directories
 
 ```text
-app/                         Next.js 页面和 API 路由
-app/api/                     后端 API
-app/components/              前端组件
-lib/                         数据访问、类型、工具函数
+app/                         Next.js pages and API routes
+app/api/                     Backend API
+app/components/              Frontend components
+lib/                         Data access, types, utility functions
 scripts/upsert_table_from_csv.js
-                             CSV 与 MySQL 对比/写入脚本
-csv_templates_normalized/    标准化 CSV 数据源
-csv_validation_reports/      本地 CSV 校验报告输出目录
-main.sql                     MySQL 表结构
-validate_csv_data.py         CSV 全量校验脚本
-.github/workflows/           GitHub Actions 工作流
-docs/                        项目文档
+                             CSV vs. MySQL compare/write script
+csv_templates_normalized/    Normalized CSV data source
+csv_validation_reports/      Local CSV validation report output directory
+main.sql                     MySQL table schema
+validate_csv_data.py         Full CSV validation script
+.github/workflows/           GitHub Actions workflows
+docs/                        Project documentation
 ```
 
-## 环境变量
+## Environment Variables
 
-本地环境变量文件：
+Local environment file:
 
 ```text
 .env.local
 ```
 
-需要配置：
+Required configuration:
 
 ```env
 DB_HOST=127.0.0.1
@@ -72,78 +72,78 @@ DB_NAME=rdcdb
 NEXT_PUBLIC_ASSET_BASE=http://tfonpalg3.hn-bkt.clouddn.com
 ```
 
-说明：
+Notes:
 
 ```text
-DB_HOST/DB_PORT/DB_USER/DB_PASS/DB_NAME 用于连接 MySQL
-NEXT_PUBLIC_ASSET_BASE 用于前端资源地址
+DB_HOST/DB_PORT/DB_USER/DB_PASS/DB_NAME are used to connect to MySQL
+NEXT_PUBLIC_ASSET_BASE is the frontend asset base URL
 ```
 
-不要把生产数据库密码提交到仓库。
+Never commit the production database password to the repository.
 
-## 本地开发
+## Local Development
 
-安装依赖：
+Install dependencies:
 
 ```bash
 npm ci
 ```
 
-启动开发服务：
+Start the dev server:
 
 ```bash
 npm run dev
 ```
 
-本地访问：
+Local URL:
 
 ```text
 http://localhost:3101
 ```
 
-构建：
+Build:
 
 ```bash
 npm run build
 ```
 
-Lint：
+Lint:
 
 ```bash
 npm run lint
 ```
 
-## 数据库
+## Database
 
-默认数据库名：
+Default database name:
 
 ```text
 rdcdb
 ```
 
-建表脚本：
+Schema script:
 
 ```text
 main.sql
 ```
 
-导入数据库示例：
+Example of importing the database:
 
 ```bash
 mysql -u root -p rdcdb < main.sql
 ```
 
-如果使用本地导出的 dump：
+If using a local dump export:
 
 ```bash
 mysql -u root -p rdcdb < dump-rdcdb-xxxx.sql
 ```
 
-项目运行时通过 `lib/db.ts` 创建 MySQL 连接池。
+At runtime the project creates a MySQL connection pool via `lib/db.ts`.
 
-## API 路由
+## API Routes
 
-主要 API：
+Main APIs:
 
 ```text
 GET /api/rdc
@@ -158,32 +158,32 @@ GET /api/chemical/[entity_category]/[entity_id]/rdc-list
 GET /api/reference/[drug_id]
 ```
 
-主要页面：
+Main pages:
 
 ```text
-/                         首页
-/rdc/search               RDC 搜索页
-/rdc/[drug_id]            RDC 详情页
+/                         Home page
+/rdc/search               RDC search page
+/rdc/[drug_id]            RDC detail page
 /chemical/[entity_category]/[entity_id]
-                          化学实体详情页
+                          Chemical entity detail page
 ```
 
-主要数据读取逻辑：
+Main data reading logic:
 
 ```text
 lib/rdc-data.ts
 lib/data-access.ts
 ```
 
-## CSV 数据源
+## CSV Data Source
 
-CSV 数据位于：
+The CSV data lives in:
 
 ```text
 csv_templates_normalized/
 ```
 
-当前主要 CSV：
+Current main CSV files:
 
 ```text
 rdc_drug.csv
@@ -204,21 +204,21 @@ reference.csv
 rdc_drug_reference.csv
 ```
 
-## CSV 校验
+## CSV Validation
 
-校验脚本：
+Validation script:
 
 ```text
 validate_csv_data.py
 ```
 
-本地运行：
+Run locally:
 
 ```bash
 python validate_csv_data.py --schema main.sql --csv-dir csv_templates_normalized --out csv_validation_reports
 ```
 
-输出：
+Output:
 
 ```text
 csv_validation_reports/csv_validation_report.md
@@ -226,98 +226,98 @@ csv_validation_reports/csv_validation_summary.csv
 csv_validation_reports/csv_validation_details.csv
 ```
 
-注意：`rdc_drug.external_id` 为空会进入报告，但不作为阻断错误。
+Note: empty `rdc_drug.external_id` values appear in the report but are not treated as blocking errors.
 
-## CSV 写入 MySQL
+## Writing CSV into MySQL
 
-脚本：
+Script:
 
 ```text
 scripts/upsert_table_from_csv.js
 ```
 
-dry-run 示例：
+Dry-run example:
 
 ```bash
 npm run upsert:csv -- --table drug_chemical_rel --csv csv_templates_normalized/drug_chemical_rel.csv --key drug_id,relation_role,chemical_entity_id
 ```
 
-apply 示例：
+Apply example:
 
 ```bash
 npm run upsert:csv -- --table drug_chemical_rel --csv csv_templates_normalized/drug_chemical_rel.csv --key drug_id,relation_role,chemical_entity_id --apply
 ```
 
-没有稳定业务唯一键的表使用整表替换：
+Tables without a stable business unique key are replaced entirely:
 
 ```bash
 npm run upsert:csv -- --table in_vitro_measurement --csv csv_templates_normalized/in_vitro_measurement.csv --replace-table --apply
 ```
 
-整表替换会先创建备份表，再删除目标表当前数据，并插入 CSV 全量数据。
+A full table replacement first creates a backup table, then deletes the current data of the target table and inserts the complete CSV data.
 
 ## GitHub Actions
 
-### 代码部署
+### Code Deployment
 
-workflow：
+Workflow:
 
 ```text
 .github/workflows/deploy-code.yml
 ```
 
-GitHub 页面入口：
+GitHub entry point:
 
 ```text
 Actions -> Deploy Code -> Run workflow
 ```
 
-参数：
+Parameters:
 
 ```text
 branch: main
 confirm_deploy: DEPLOY_TO_PRODUCTION
 ```
 
-功能：
+What it does:
 
 ```text
-SSH 登录阿里云服务器
-进入项目目录
+SSH into the Alibaba Cloud server
+Enter the project directory
 git pull
 npm ci
 npm run build
 pm2 restart
 ```
 
-### 数据更新
+### Data Updates
 
-workflow：
+Workflow:
 
 ```text
 .github/workflows/database-csv-patch.yml
 ```
 
-GitHub 页面入口：
+GitHub entry point:
 
 ```text
 Actions -> Database CSV Patch -> Run workflow
 ```
 
-参数：
+Parameters:
 
 ```text
-table: 要 apply 的目标表
-csv: CSV 路径；留空时使用 csv_templates_normalized/<table>.csv
-mode: dry-run 或 apply
-confirm_apply: apply 时必须填写 APPLY_TO_PRODUCTION
+table: target table to apply
+csv: CSV path; when left empty, csv_templates_normalized/<table>.csv is used
+mode: dry-run or apply
+confirm_apply: for apply you must enter APPLY_TO_PRODUCTION
 ```
 
-dry-run 会对比所有 CSV 和 MySQL 当前数据。
+The dry-run compares all CSV files against the current MySQL data.
 
-apply 会写入用户选择的 `table`。
+The apply writes to the `table` selected by the user.
 
-更多细节见：
+For more details see:
 
 ```text
 docs/drug_chemical_rel_workflow_manual.md
@@ -325,7 +325,7 @@ docs/drug_chemical_rel_workflow_manual.md
 
 ## GitHub Secrets
 
-代码部署需要：
+Code deployment requires:
 
 ```text
 DEPLOY_HOST
@@ -336,7 +336,7 @@ DEPLOY_SSH_KEY
 PM2_APP_NAME
 ```
 
-数据库更新需要：
+Database updates require:
 
 ```text
 DB_HOST
@@ -346,19 +346,19 @@ DB_PASS
 DB_NAME
 ```
 
-如果 secrets 放在 GitHub Environment 中，workflow 的 `environment` 名称必须和 GitHub 环境名一致。
+If the secrets are stored in a GitHub Environment, the workflow's `environment` name must match the GitHub environment name.
 
-## 线上部署结构
+## Production Deployment Structure
 
-当前线上结构：
+Current production structure:
 
 ```text
 Nginx -> 127.0.0.1:3101 -> Next.js
 Next.js -> 127.0.0.1:3306 -> MySQL
-PM2 管理 Next.js 进程
+PM2 manages the Next.js process
 ```
 
-常用服务器命令：
+Common server commands:
 
 ```bash
 pm2 status
@@ -368,7 +368,7 @@ systemctl status nginx
 systemctl status mysql
 ```
 
-手动部署命令：
+Manual deployment commands:
 
 ```bash
 cd /var/www/drug
@@ -381,13 +381,13 @@ pm2 restart rdc-api
 pm2 save
 ```
 
-实际目录以 GitHub Secret `DEPLOY_PATH` 为准。
+The actual directory is determined by the GitHub Secret `DEPLOY_PATH`.
 
-## 常见维护场景
+## Common Maintenance Scenarios
 
-### 修改前端页面
+### Modifying Frontend Pages
 
-主要看：
+Look mainly at:
 
 ```text
 app/page.tsx
@@ -397,17 +397,17 @@ app/chemical/[entity_category]/[entity_id]/page.tsx
 app/components/
 ```
 
-修改后：
+After changes:
 
 ```bash
 npm run build
 ```
 
-然后通过 `Deploy Code` 发布。
+Then publish via `Deploy Code`.
 
-### 修改 API 查询逻辑
+### Modifying API Query Logic
 
-主要看：
+Look mainly at:
 
 ```text
 app/api/
@@ -416,45 +416,44 @@ lib/data-access.ts
 lib/db.ts
 ```
 
-修改后至少运行：
+After changes, run at least:
 
 ```bash
 npm run build
 ```
 
-### 更新 CSV 数据
+### Updating CSV Data
 
-推荐流程：
+Recommended workflow:
 
 ```text
-1. 修改 csv_templates_normalized 下的 CSV
-2. 本地运行 validate_csv_data.py
-3. 提交代码
-4. GitHub Actions 运行 Database CSV Patch dry-run
-5. 确认目标表 diff
-6. 再运行 apply
+1. Modify the CSV files under csv_templates_normalized
+2. Run validate_csv_data.py locally
+3. Commit the code
+4. Run the Database CSV Patch dry-run in GitHub Actions
+5. Confirm the target table diff
+6. Then run apply
 ```
 
-### 修改数据库结构
+### Modifying the Database Schema
 
-需要同步修改：
+The following must be updated in sync:
 
 ```text
 main.sql
 csv_templates_normalized/*.csv
-validate_csv_data.py 中的校验逻辑，如有必要
-scripts/upsert_table_from_csv.js 中的写入/对比逻辑，如有必要
-lib/rdc-data.ts 或 API 查询逻辑
+Validation logic in validate_csv_data.py, if necessary
+Write/compare logic in scripts/upsert_table_from_csv.js, if necessary
+lib/rdc-data.ts or the API query logic
 ```
 
-数据库结构修改需要谨慎安排迁移步骤，不建议直接在生产库手动改完后不同步 `main.sql`。
+Database schema changes require carefully planned migration steps. It is not advisable to modify the production database manually without keeping `main.sql` in sync.
 
-## 注意事项
+## Cautions
 
-1. 生产数据更新必须先 dry-run，再 apply。
-2. `--apply` 会真实写数据库，本地执行前必须确认 `.env.local` 连接的是哪个库。
-3. 整表替换表必须保证 CSV 是完整数据集。
-4. 不要提交生产密码、SSH 私钥或 `.env.local`。
-5. 不建议提交 `__pycache__`、`.next`、`node_modules`。
-6. 修改 workflow 后，要在 GitHub Actions 页面确认显示名和参数符合预期。
-
+1. Production data updates must always run dry-run first, then apply.
+2. `--apply` writes to the database for real; before running it locally, confirm which database `.env.local` connects to.
+3. For full table replacements, make sure the CSV is the complete data set.
+4. Never commit production passwords, SSH private keys, or `.env.local`.
+5. Do not commit `__pycache__`, `.next`, or `node_modules`.
+6. After modifying a workflow, verify on the GitHub Actions page that the display names and parameters match expectations.

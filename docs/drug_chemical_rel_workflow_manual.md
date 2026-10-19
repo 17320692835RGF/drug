@@ -1,12 +1,12 @@
-# Database CSV Patch 操作手册
+# Database CSV Patch Manual
 
-本文档说明如何使用 `.github/workflows/database-csv-patch.yml` 中的 `Database CSV Patch` 工作流，校验 CSV、对比线上 MySQL，并在确认后写入指定数据表。
+This document explains how to use the `Database CSV Patch` workflow in `.github/workflows/database-csv-patch.yml` to validate CSV files, compare them against the production MySQL database, and write data into the target tables after confirmation.
 
-## 功能范围
+## Scope
 
-这个 workflow 不再只服务 `drug_chemical_rel`。它可以在 apply 模式下写入项目中 `csv_templates_normalized` 目录对应的任意表。
+This workflow is no longer limited to `drug_chemical_rel`. In apply mode it can write to any table that has a corresponding file in the project's `csv_templates_normalized` directory.
 
-支持的表：
+Supported tables:
 
 ```text
 rdc_drug
@@ -27,28 +27,28 @@ reference
 rdc_drug_reference
 ```
 
-## 入口
+## Entry Point
 
-进入 GitHub 仓库：
+In the GitHub repository, go to:
 
 ```text
 Actions -> Database CSV Patch -> Run workflow
 ```
 
-参数说明：
+Parameter reference:
 
 ```text
-table: apply 时要写入的目标表
-csv: CSV 路径；留空时自动使用 csv_templates_normalized/<table>.csv
-mode: dry-run 或 apply
-confirm_apply: apply 模式必须填写 APPLY_TO_PRODUCTION
+table: target table to write in apply mode
+csv: CSV path; when left empty, csv_templates_normalized/<table>.csv is used automatically
+mode: dry-run or apply
+confirm_apply: for apply mode you must enter APPLY_TO_PRODUCTION
 ```
 
-## 推荐流程
+## Recommended Workflow
 
-### 1. 先提交 CSV
+### 1. Commit the CSV first
 
-把要更新的 CSV 提交到仓库，例如：
+Commit the CSV files you want to apply, for example:
 
 ```text
 csv_templates_normalized/drug_chemical_rel.csv
@@ -56,36 +56,36 @@ csv_templates_normalized/chemical_entity.csv
 csv_templates_normalized/reference.csv
 ```
 
-### 2. 先跑 dry-run
+### 2. Run a dry-run first
 
-选择：
+Select:
 
 ```text
 mode: dry-run
-confirm_apply: 留空
+confirm_apply: leave empty
 ```
 
-dry-run 会执行：
+The dry-run will:
 
 ```text
-1. 校验输入参数
-2. 运行 validate_csv_data.py 做全量 CSV 校验
-3. 上传 csv-validation-reports artifact
-4. 检查 upsert_table_from_csv.js 语法
-5. 对比所有 CSV 和 MySQL 当前数据
+1. Validate the input parameters
+2. Run validate_csv_data.py for a full CSV validation
+3. Upload the csv-validation-reports artifact
+4. Check the syntax of upsert_table_from_csv.js
+5. Compare all CSV files against the current MySQL data
 ```
 
-注意：dry-run 会对比所有表，不只对比你选择的 `table`。
+Note: the dry-run compares all tables, not just the `table` you selected.
 
-### 3. 检查目标表结果
+### 3. Inspect the target table results
 
-在日志 `Dry-run all database diffs` 中找到目标表，例如：
+In the `Dry-run all database diffs` log, find the target table, e.g.:
 
 ```text
 Dry-run diff: drug_chemical_rel
 ```
 
-重点确认：
+Focus on confirming:
 
 ```text
 CSV rows
@@ -97,7 +97,7 @@ Insert samples
 Update samples
 ```
 
-没有稳定唯一键的明细表会显示：
+Detail tables without a stable unique key will show:
 
 ```text
 CSV-only rows
@@ -105,24 +105,24 @@ DB-only rows
 Unchanged
 ```
 
-### 4. 再跑 apply
+### 4. Then run apply
 
-确认 dry-run 符合预期后，再运行：
+After confirming the dry-run results look correct, run with:
 
 ```text
 mode: apply
 confirm_apply: APPLY_TO_PRODUCTION
 ```
 
-如果 `csv` 留空，workflow 会自动使用：
+If `csv` is left empty, the workflow automatically uses:
 
 ```text
 csv_templates_normalized/<table>.csv
 ```
 
-## 写入策略
+## Write Strategy
 
-有稳定业务唯一键的表使用 upsert：
+Tables with a stable business unique key use upsert:
 
 ```text
 rdc_drug: drug_id
@@ -140,7 +140,7 @@ reference: reference_id
 rdc_drug_reference: drug_id,reference_id
 ```
 
-没有稳定业务唯一键的明细表，apply 时使用整表替换：
+Detail tables without a stable business unique key are replaced entirely during apply:
 
 ```text
 in_vitro_measurement
@@ -148,57 +148,57 @@ animal_in_vivo_biodist
 animal_in_vivo_efficacy
 ```
 
-整表替换会先创建备份表，再删除目标表当前数据，并插入 CSV 全量数据。
+A full table replacement first creates a backup table, then deletes the current data of the target table and inserts the complete CSV data.
 
-## CSV 校验
+## CSV Validation
 
-校验脚本：
+Validation script:
 
 ```text
 validate_csv_data.py
 ```
 
-报告 artifact：
+Report artifact:
 
 ```text
 csv-validation-reports
 ```
 
-`rdc_drug.external_id` 为空会出现在报告中，但不会阻断 workflow。
+Empty `rdc_drug.external_id` values appear in the report but do not block the workflow.
 
-会阻断的典型问题：
+Typical blocking issues:
 
 ```text
-引用编号不存在
-重复记录
-必填字段为空
-枚举值非法
-数字或日期格式非法
-字段过长
-CSV 文件缺失
+Referenced ID not found
+Duplicate records
+Empty required fields
+Invalid enum values
+Invalid number or date formats
+Values too long
+Missing CSV files
 ```
 
-## 本地命令
+## Local Commands
 
-CSV 校验：
+CSV validation:
 
 ```bash
 python validate_csv_data.py --schema main.sql --csv-dir csv_templates_normalized --out csv_validation_reports
 ```
 
-指定表 dry-run：
+Dry-run for a specific table:
 
 ```bash
 npm run upsert:csv -- --table drug_chemical_rel --csv csv_templates_normalized/drug_chemical_rel.csv --key drug_id,relation_role,chemical_entity_id
 ```
 
-指定表 apply：
+Apply for a specific table:
 
 ```bash
 npm run upsert:csv -- --table drug_chemical_rel --csv csv_templates_normalized/drug_chemical_rel.csv --key drug_id,relation_role,chemical_entity_id --apply
 ```
 
-整表替换 apply 示例：
+Full table replacement apply examples:
 
 ```bash
 
@@ -251,10 +251,10 @@ npm run upsert:csv -- --table rdc_drug_reference --csv csv_templates_normalized/
 
 ```
 
-## 注意事项
+## Cautions
 
-1. 生产库更新前必须先跑 dry-run。
-2. apply 时必须填写 `APPLY_TO_PRODUCTION`。
-3. 对整表替换表要特别谨慎，确认 CSV 是完整数据集。
-4. 本地执行 `--apply` 前必须确认 `.env.local` 指向的是正确数据库。
-5. apply 失败时，先查看日志和自动创建的备份表。
+1. Always run a dry-run before updating the production database.
+2. `APPLY_TO_PRODUCTION` must be entered when running apply.
+3. Be especially careful with full table replacements; make sure the CSV is the complete data set.
+4. Before running `--apply` locally, confirm that `.env.local` points to the correct database.
+5. If apply fails, check the logs and the automatically created backup tables first.
