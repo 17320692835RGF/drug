@@ -1,6 +1,11 @@
-﻿优先级,问题类型,数量,需要查看的文件,问题说明,推荐修改,样例
-1,外部编号为空,2052,rdc_drug.csv(2052),药物的 external_id 列为空。这个字段不是必须都填写，只有确实有来源编号时才需要补充。,如果没有真实外部编号，可以保持为空；不要为了消除报告而随便编编号。如果这列暂时不用，建议后续统一补真实编号。,"- `rdc_drug.csv` 第 3 行，`external_id` = 空
-- `rdc_drug.csv` 第 4 行，`external_id` = 空
-- `rdc_drug.csv` 第 5 行，`external_id` = 空
-- `rdc_drug.csv` 第 6 行，`external_id` = 空
-- `rdc_drug.csv` 第 7 行，`external_id` = 空"
+﻿Priority,Issue type,Count,Files to review,Problem,Recommended fix,Samples
+1,External ID is empty,2053,rdc_drug.csv(2053),The external_id column of the drug is empty. This field does not have to be filled for every row; only fill it in when a real source ID exists.,"If there is no real external ID, leave it empty; do not invent IDs just to clear the report. If this column is unused for now, backfill real IDs later.","- `rdc_drug.csv` line 3, `external_id` = empty
+- `rdc_drug.csv` line 4, `external_id` = empty
+- `rdc_drug.csv` line 5, `external_id` = empty
+- `rdc_drug.csv` line 6, `external_id` = empty
+- `rdc_drug.csv` line 7, `external_id` = empty"
+2,Invalid date format,1488,reference.csv(1488),The date format in the publication_date column is inconsistent.,"Normalize to YYYY-MM-DD, e.g. 2025-06-20.","- `reference.csv` line 2, `publication_date` = `2025/6/20`
+- `reference.csv` line 3, `publication_date` = `2021/9/24`
+- `reference.csv` line 4, `publication_date` = `2011/1/19`
+- `reference.csv` line 5, `publication_date` = `2025/5/13`
+- `reference.csv` line 6, `publication_date` = `2022/10/7`"

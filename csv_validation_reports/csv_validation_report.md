@@ -1,33 +1,51 @@
-# CSV 数据修改建议报告
+# CSV Data Fix Recommendations
 
-本报告面向数据整理人员，只说明需要检查哪些 CSV、哪些行，以及推荐如何修改。
+This report is intended for data curators. It only describes which CSV files and rows to check, and the recommended fixes.
 
-## 概要
+## Summary
 
-- 检查文件数: 16
-- 检查数据行数: 36700
-- 需要关注的问题数: 2052
+- Files checked: 16
+- Data rows checked: 36734
+- Issues to review: 3541
 
-## 优先处理建议
+## Priority Fixes
 
-先处理重复记录，再处理格式错误、必填为空、编号不存在等问题。对于“外部编号为空”这类问题，如果没有真实编号，可以保持为空，不要随意编造。
+Handle duplicate records first, then format errors, empty required fields, missing referenced IDs, and so on. For issues such as "external ID is empty", leave the value empty when no real ID exists; do not invent values.
 
-## 问题分组
+## Issue Groups
 
-### 1. 外部编号为空 (2052 条)
+### 1. External ID is empty (2053 issues)
 
-**需要查看的文件**: `rdc_drug.csv` (2052 条)
+**Files to review**: `rdc_drug.csv` (2053 issues)
 
-**问题说明**: 药物的 external_id 列为空。这个字段不是必须都填写，只有确实有来源编号时才需要补充。
+**Problem**: The external_id column of the drug is empty. This field does not have to be filled for every row; only fill it in when a real source ID exists.
 
-**推荐修改**: 如果没有真实外部编号，可以保持为空；不要为了消除报告而随便编编号。如果这列暂时不用，建议后续统一补真实编号。
+**Recommended fix**: If there is no real external ID, leave it empty; do not invent IDs just to clear the report. If this column is unused for now, backfill real IDs later.
 
-**样例**:
-- `rdc_drug.csv` 第 3 行，`external_id` = 空
-- `rdc_drug.csv` 第 4 行，`external_id` = 空
-- `rdc_drug.csv` 第 5 行，`external_id` = 空
-- `rdc_drug.csv` 第 6 行，`external_id` = 空
-- `rdc_drug.csv` 第 7 行，`external_id` = 空
-- `rdc_drug.csv` 第 8 行，`external_id` = 空
-- `rdc_drug.csv` 第 9 行，`external_id` = 空
-- `rdc_drug.csv` 第 10 行，`external_id` = 空
+**Samples**:
+- `rdc_drug.csv` line 3, `external_id` = empty
+- `rdc_drug.csv` line 4, `external_id` = empty
+- `rdc_drug.csv` line 5, `external_id` = empty
+- `rdc_drug.csv` line 6, `external_id` = empty
+- `rdc_drug.csv` line 7, `external_id` = empty
+- `rdc_drug.csv` line 8, `external_id` = empty
+- `rdc_drug.csv` line 9, `external_id` = empty
+- `rdc_drug.csv` line 10, `external_id` = empty
+
+### 2. Invalid date format (1488 issues)
+
+**Files to review**: `reference.csv` (1488 issues)
+
+**Problem**: The date format in the publication_date column is inconsistent.
+
+**Recommended fix**: Normalize to YYYY-MM-DD, e.g. 2025-06-20.
+
+**Samples**:
+- `reference.csv` line 2, `publication_date` = `2025/6/20`
+- `reference.csv` line 3, `publication_date` = `2021/9/24`
+- `reference.csv` line 4, `publication_date` = `2011/1/19`
+- `reference.csv` line 5, `publication_date` = `2025/5/13`
+- `reference.csv` line 6, `publication_date` = `2022/10/7`
+- `reference.csv` line 7, `publication_date` = `2011/4/13`
+- `reference.csv` line 8, `publication_date` = `2007/6/15`
+- `reference.csv` line 9, `publication_date` = `2019/12/26`
